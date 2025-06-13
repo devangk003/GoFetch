@@ -1,0 +1,21 @@
+# Requirements for DataInsight MongoDB Import
+# ==========================================
+
+# Core data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# MongoDB connection and operations
+pymongo>=4.3.0
+dnspython>=2.3.0  # Required for MongoDB Atlas connections
+
+# Environment variable management
+python-dotenv>=1.0.0
+
+# Optional: For enhanced data analysis (if running in notebook)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+jupyter>=1.0.0
+
+# Optional: For data validation and type checking
+pydantic>=2.0.0

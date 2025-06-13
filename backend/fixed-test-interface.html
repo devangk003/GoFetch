@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Air Quality API - Fixed Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #007acc;
+            padding-bottom: 10px;
+        }
+        .button-section {
+            margin: 20px 0;
+        }
+        .api-button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .api-button:hover {
+            background: #005a9e;
+        }
+        .api-button:active {
+            background: #004080;
+        }
+        .search-input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 250px;
+            margin: 10px;
+            font-size: 14px;
+        }
+        .status-display {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .results-display {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Air Quality API - Fixed Test Interface</h1>
+        <p>All buttons are properly linked and tested. Click any button to test the API.</p>
+        
+        <div class="button-section">
+            <h3>Server Status:</h3>
+            <button class="api-button" onclick="callAPI('/health', 'GET')">Server Health</button>
+            <button class="api-button" onclick="callAPI('/api/v1/air-quality/health-check', 'GET')">API Health Check</button>
+            <button class="api-button" onclick="callAPI('/api/v1/', 'GET')">API Information</button>
+        </div>
+
+        <div class="button-section">
+            <h3>Data Retrieval:</h3>
+            <button class="api-button" onclick="callAPI('/api/v1/data?limit=5', 'GET')">Get 5 Records</button>
+            <button class="api-button" onclick="callAPI('/api/v1/air-quality/statistics', 'GET')">Database Statistics</button>
+            <button class="api-button" onclick="callAPI('/api/v1/air-quality/geo', 'GET')">Geographic Data</button>
+            <button class="api-button" onclick="callAPI('/api/v1/air-quality/trends?year=2024', 'GET')">2024 Trends</button>
+        </div>
+
+        <div class="button-section">
+            <h3>Search & AI Predictions:</h3>
+            <input type="text" class="search-input" id="searchTerm" placeholder="Enter search term..." value="Rochester">
+            <br>
+            <button class="api-button" onclick="performSearch()">Advanced Search</button>
+            <button class="api-button" onclick="performTextSearch()">Text Search</button>
+            <button class="api-button" onclick="performPrediction()">AI Prediction</button>
+            <button class="api-button" onclick="performFilteredSearch()">Filtered Search (AQI 5-15)</button>
+        </div>
+
+        <div class="button-section">
+            <h3>Advanced Features:</h3>
+            <button class="api-button" onclick="callAPI('/api/v1/air-quality/alerts?threshold=10', 'GET')">High Pollution Alerts</button>
+            <button class="api-button" onclick="testMultipleCities()">Multiple City Predictions</button>
+            <button class="api-button" onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="statusArea" class="status-display hidden">Ready to test...</div>
+        <div id="resultsArea" class="results-display hidden">Click any button above to see results...</div>
+    </div>
+
+    <script>
+        // Global variables
+        const API_BASE_URL = 'http://localhost:5000';
+        
+        // Utility functions
+        function showStatus(message, type = 'loading') {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            const statusArea = document.getElementById('statusArea');
+            statusArea.className = `status-display status-${type}`;
+            statusArea.textContent = message;
+            statusArea.classList.remove('hidden');
+        }
+        
+        function showResults(data, title = '') {
+            const resultsArea = document.getElementById('resultsArea');
+            let displayText = '';
+            
+            if (title) {
+                displayText += `=== ${title} ===\n\n`;
+            }
+            
+            if (typeof data === 'object') {
+                displayText += JSON.stringify(data, null, 2);
+            } else {
+                displayText += data;
+            }
+            
+            resultsArea.textContent = displayText;
+            resultsArea.classList.remove('hidden');
+        }
+        
+        function clearResults() {
+            document.getElementById('statusArea').classList.add('hidden');
+            document.getElementById('resultsArea').classList.add('hidden');
+            console.log('Results cleared');
+        }
+        
+        // Main API calling function
+        async function callAPI(endpoint, method = 'GET', body = null) {
+            const fullUrl = API_BASE_URL + endpoint;
+            showStatus(`🔄 ${method} ${endpoint}...`, 'loading');
+            
+            console.log(`Making ${method} request to: ${fullUrl}`);
+            
+            try {
+                const options = {
+                    method: method,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                };
+                
+                if (body && method !== 'GET') {
+                    options.headers['Content-Type'] = 'application/json';
+                    options.body = JSON.stringify(body);
+                    console.log('Request body:', body);
+                }
+                
+                const response = await fetch(fullUrl, options);
+                console.log(`Response status: ${response.status} ${response.statusText}`);
+                
+                const responseData = await response.json();
+                console.log('Response data:', responseData);
+                
+                if (response.ok) {
+                    showStatus(`✅ ${method} ${endpoint} - Success (${response.status})`, 'success');
+                    showResults(responseData, `${method} ${endpoint}`);
+                } else {
+                    showStatus(`❌ ${method} ${endpoint} - Error (${response.status})`, 'error');
+                    showResults(responseData, `Error from ${endpoint}`);
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                showStatus(`❌ Network Error: ${error.message}`, 'error');
+                showResults(`Network Error: ${error.message}\n\nPlease check:\n1. Server is running\n2. URL is correct\n3. CORS is configured`, 'Network Error');
+            }
+        }
+        
+        // Search functions
+        async function performSearch() {
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            if (!searchTerm) {
+                showStatus('❌ Please enter a search term', 'error');
+                return;
+            }
+            
+            const searchBody = {
+                query: searchTerm,
+                limit: 10
+            };
+            
+            await callAPI('/api/v1/search', 'POST', searchBody);
+        }
+        
+        async function performTextSearch() {
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            if (!searchTerm) {
+                showStatus('❌ Please enter a search term', 'error');
+                return;
+            }
+            
+            await callAPI(`/api/v1/air-quality/search?q=${encodeURIComponent(searchTerm)}`, 'GET');
+        }
+        
+        async function performPrediction() {
+            const city = document.getElementById('searchTerm').value.trim() || 'Rochester';
+            await callAPI(`/api/v1/predict/${encodeURIComponent(city)}?days=3`, 'GET');
+        }
+        
+        async function performFilteredSearch() {
+            const searchTerm = document.getElementById('searchTerm').value.trim() || 'New York';
+            
+            const searchBody = {
+                query: searchTerm,
+                filters: {
+                    minAQI: 5,
+                    maxAQI: 15
+                },
+                limit: 5
+            };
+            
+            await callAPI('/api/v1/search', 'POST', searchBody);
+        }
+        
+        async function testMultipleCities() {
+            showStatus('🔄 Testing predictions for multiple cities...', 'loading');
+            const cities = ['Rochester', 'New York', 'Boston'];
+            let allResults = [];
+            
+            for (const city of cities) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/v1/predict/${encodeURIComponent(city)}?days=2`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        allResults.push({
+                            city: city,
+                            status: 'success',
+                            forecast: data.predictions[0]?.predicted_aqi || 'N/A',
+                            confidence: data.model_info?.confidence_score || 'N/A'
+                        });
+                    } else {
+                        allResults.push({
+                            city: city,
+                            status: 'error',
+                            error: data.message || 'Unknown error'
+                        });
+                    }
+                } catch (error) {
+                    allResults.push({
+                        city: city,
+                        status: 'error',
+                        error: error.message
+                    });
+                }
+            }
+            
+            showStatus(`✅ Multiple city predictions completed`, 'success');
+            showResults(allResults, 'Multiple City Predictions');
+        }
+        
+        // Initialize page
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, page ready');
+            showStatus('✅ Page loaded successfully. Click any button to test the API.', 'success');
+            
+            // Test if server is reachable on page load
+            setTimeout(() => {
+                callAPI('/health', 'GET');
+            }, 1000);
+        });
+        
+        console.log('Air Quality API Test Interface loaded successfully');
+    </script>
+</body>
+</html>

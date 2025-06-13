@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "allowJs": true,
+    "checkJs": false,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": true,
+    "noEmitOnError": false,
+    "noEmit": true
+  },
+  "include": [
+    "backend/**/*.js",
+    "backend/**/*.json"
+  ],
+  "exclude": [
+    "node_modules",
+    "backend/node_modules",
+    "**/server.js",
+    "**/*.test.js",
+    "**/*.spec.js"
+  ]
+}
