@@ -1,7 +1,21 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Add these styles to ensure full height propagation */
+html,
+body,
+#root { /* Or your actual React root ID if different */
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure #root or your main app container is also a flex container if it wraps Index.tsx */
+#root {
+  display: flex;
+  flex-direction: column;
+}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 

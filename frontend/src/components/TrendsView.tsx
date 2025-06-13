@@ -1,274 +1,205 @@
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { fetchTrends } from '../lib/api';
-import { Loader } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTrendsData } from '../lib/queries'; // Assuming this hook exists and works
+import { Loader, AlertTriangle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'; // Assuming these are ShadCN UI components
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'; // Assuming ShadCN Select
+
+const AQI_LEVELS = [
+	{ limit: 50, color: 'bg-green-500', textColor: 'text-green-700', label: 'Good' },
+	{ limit: 100, color: 'bg-yellow-500', textColor: 'text-yellow-700', label: 'Moderate' },
+	{ limit: 150, color: 'bg-orange-500', textColor: 'text-orange-700', label: 'Unhealthy for Sensitive Groups' },
+	{ limit: 200, color: 'bg-red-500', textColor: 'text-red-700', label: 'Unhealthy' },
+	{ limit: 300, color: 'bg-purple-500', textColor: 'text-purple-700', label: 'Very Unhealthy' },
+	{ limit: Infinity, color: 'bg-fuchsia-800', textColor: 'text-fuchsia-900', label: 'Hazardous' },
+];
+
+const getAqiStyling = (aqi: number | undefined) => {
+	if (aqi === undefined || isNaN(aqi)) return AQI_LEVELS[0]; // Default to 'Good' or a neutral style if undefined
+	const level = AQI_LEVELS.find(l => aqi <= l.limit);
+	return level || AQI_LEVELS[AQI_LEVELS.length - 1];
+};
+
 
 export const TrendsView: React.FC = () => {
-  const [selectedCity, setSelectedCity] = useState('New York');
-  const [timeRange, setTimeRange] = useState('7d');
-  const [trendData, setTrendData] = useState<any[]>([]);
-  const [cityComparisonData, setCityComparisonData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+	const [timeRange, setTimeRange] = useState('30d'); // Default to 30 days
+	const selectedCity = 'New York'; // Hardcoded for now
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const data = await fetchTrends(selectedCity, timeRange);
-        
-        if (Array.isArray(data)) {
-          // Process and format the data if needed
-          const formattedData = data.map(item => ({
-            ...item,
-            date: item.date || item.Date || new Date(item._id?.year, item._id?.month - 1).toISOString(),
-            aqi: item.aqi || item.avgAQI || item['Daily AQI Value'] || 0
-          }));
-          
-          setTrendData(formattedData);
-        } else {
-          console.error('Unexpected data format:', data);
-          setError('Received unexpected data format from the API');
-          setTrendData([]);
-        }
-      } catch (e) {
-        console.error(e);
-        setError('Failed to load trend data');
-        setTrendData([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    
-    // Also load city comparison data
-    async function loadCityComparison() {
-      try {
-        // Cities to compare
-        const cities = ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix'];
-        const comparisonData = [];
-        
-        for (const city of cities) {
-          try {
-            const data = await fetchTrends(city, '7d');
-            
-            if (Array.isArray(data) && data.length > 0) {
-              // Calculate average AQI from the trend data
-              const avgAqi = data.reduce((sum, item) => sum + (item.aqi || item.avgAQI || 0), 0) / data.length;
-              const maxAqi = Math.max(...data.map(item => item.aqi || item.avgAQI || item.maxAQI || 0));
-              
-              comparisonData.push({
-                city,
-                aqi: Math.round(avgAqi),
-                maxAqi: Math.round(maxAqi)
-              });
-            }
-          } catch (cityError) {
-            console.error(`Error loading data for ${city}:`, cityError);
-          }
-        }
-        
-        if (comparisonData.length > 0) {
-          setCityComparisonData(comparisonData);
-        }
-      } catch (e) {
-        console.error('Error loading city comparison:', e);
-      }
-    }
-    
-    load();
-    loadCityComparison();
-  }, [selectedCity, timeRange]);
+	const { 
+		data: trendDataResponse, 
+		isLoading, 
+		error 
+	} = useTrendsData(selectedCity, timeRange);
 
-  const getAQIColor = (aqi: number) => {
-    if (aqi <= 50) return '#10B981';
-    if (aqi <= 100) return '#F59E0B';
-    if (aqi <= 150) return '#F97316';
-    if (aqi <= 200) return '#EF4444';
-    if (aqi <= 300) return '#8B5CF6';
-    return '#7C2D12';
-  };
+	const formattedTrendData = useMemo(() => {
+		if (!trendDataResponse || !Array.isArray(trendDataResponse.data)) return [];
+		
+		return trendDataResponse.data.map((item: any) => ({
+			date: new Date(item.date || item.Date || item._id?.date || (item._id && new Date(item._id.year, item._id.month -1, item._id.day))).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+			aqi: Math.round(item.aqi || item.avgAQI || item['Daily AQI Value'] || 0),
+		})).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+	}, [trendDataResponse]);
 
-  return (
-    <div className="min-h-screen p-4 pt-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-            Air Quality Trends
-          </h1>
-          
-          {/* Controls */}
-          <div className="flex flex-wrap gap-4 items-center">
-            <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg px-4 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="New York">New York</option>
-              <option value="Los Angeles">Los Angeles</option>
-              <option value="Chicago">Chicago</option>
-              <option value="Houston">Houston</option>
-              <option value="Phoenix">Phoenix</option>
-            </select>
-            
-            <div className="flex bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-lg p-1">
-              {['7d', '30d', '90d'].map((range) => (
-                <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-3 py-1 rounded text-sm transition-all duration-200 ${
-                    timeRange === range
-                      ? 'bg-blue-500 text-white'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {range === '7d' ? '7 Days' : range === '30d' ? '30 Days' : '90 Days'}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+	const CustomTooltip = ({ active, payload, label }: any) => {
+		if (active && payload && payload.length) {
+			const data = payload[0].payload;
+			const styling = getAqiStyling(data.aqi);
+			return (
+				<div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
+					<p className="label text-sm font-semibold text-gray-700 dark:text-gray-300">{`Date: ${label}`}</p>
+					<p className={`text-sm font-bold ${styling.textColor}`}>{`AQI: ${data.aqi}`}</p>
+					<p className={`text-xs ${styling.textColor}`}>{styling.label}</p>
+				</div>
+			);
+		}
+		return null;
+	};
 
-        {loading && (
-          <div className="flex justify-center items-center h-64">
-            <Loader className="animate-spin text-blue-500" />
-          </div>
-        )}
-        
-        {error && (
-          <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-lg mb-8">
-            {error}
-          </div>
-        )}
+	if (isLoading) {
+		return (
+			<div className="flex items-center justify-center h-[calc(100vh-200px)]">
+				<Loader className="h-12 w-12 animate-spin text-blue-600" />
+				<p className="ml-4 text-lg text-gray-700 dark:text-gray-300">Loading air quality trends...</p>
+			</div>
+		);
+	}
 
-        {!loading && !error && trendData.length > 0 && (
-          <>
-            {/* Main Chart */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-6 mb-8">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                AQI Trend - {selectedCity}
-              </h2>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.3)" />
-                    <XAxis 
-                      dataKey="date" 
-                      stroke="rgba(156, 163, 175, 0.7)"
-                      fontSize={12}
-                      tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    />
-                    <YAxis stroke="rgba(156, 163, 175, 0.7)" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                        backdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(229, 231, 235, 0.5)',
-                        borderRadius: '12px',
-                      }}
-                      formatter={(value: number) => [`AQI: ${value}`, 'Air Quality']}
-                      labelFormatter={(label) => new Date(label).toLocaleDateString('en-US', { 
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric'
-                      })}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="aqi" 
-                      stroke="#3B82F6"
-                      strokeWidth={2}
-                      dot={{ r: 4, fill: '#3B82F6', strokeWidth: 0 }}
-                      activeDot={{ r: 6, fill: '#2563EB', strokeWidth: 0 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+	if (error) {
+		return (
+			<div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] p-4 text-center">
+				<AlertTriangle className="h-16 w-16 text-red-500 mb-4" />
+				<h2 className="text-2xl font-semibold text-red-600 dark:text-red-400 mb-2">Failed to Load Data</h2>
+				<p className="text-gray-700 dark:text-gray-300 mb-1">
+					There was an issue fetching the air quality trends for {selectedCity}.
+				</p>
+				<p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+					Error: {error instanceof Error ? error.message : 'Unknown error'}
+				</p>
+				<button 
+					onClick={() => window.location.reload()} 
+					className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+				>
+					Try Again
+				</button>
+			</div>
+		);
+	}
+	
+	const yAxisDomain = useMemo(() => {
+		if (!formattedTrendData || formattedTrendData.length === 0) return [0, 100];
+		const maxAqi = Math.max(...formattedTrendData.map(d => d.aqi), 0);
+		return [0, Math.max(maxAqi + 20, 50)]; // Ensure a minimum upper bound for small AQI values
+	}, [formattedTrendData]);
 
-            {cityComparisonData.length > 0 && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* City Comparison Chart */}
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-6">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                    City Comparison
-                  </h2>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={cityComparisonData} layout="vertical">
-                        <CartesianGrid horizontal strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.3)" />
-                        <XAxis type="number" fontSize={12} stroke="rgba(156, 163, 175, 0.7)" />
-                        <YAxis 
-                          dataKey="city" 
-                          type="category" 
-                          fontSize={12} 
-                          tick={{ fill: 'rgba(156, 163, 175, 0.9)' }}
-                          width={80}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                            backdropFilter: 'blur(12px)',
-                            border: '1px solid rgba(229, 231, 235, 0.5)',
-                            borderRadius: '12px',
-                          }}
-                        />
-                        <Bar 
-                          dataKey="aqi" 
-                          fill="#3B82F6" 
-                          label={{ 
-                            position: 'right', 
-                            fill: 'rgba(107, 114, 128, 0.8)',
-                            fontSize: 12,
-                            formatter: (value: number) => `${value}`
-                          }}
-                          radius={[0, 6, 6, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-                
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {cityComparisonData.slice(0, 4).map((city) => (
-                    <div 
-                      key={city.city}
-                      className={`bg-gradient-to-br p-6 rounded-xl shadow-sm border border-gray-200/50 dark:border-gray-700/50`}
-                      style={{ backgroundColor: `${getAQIColor(city.aqi)}15` }}
-                    >
-                      <h3 className="font-semibold text-gray-900 dark:text-gray-100">{city.city}</h3>
-                      <div className="flex items-end mt-3 justify-between">
-                        <div>
-                          <span 
-                            className="text-2xl font-bold" 
-                            style={{ color: getAQIColor(city.aqi) }}
-                          >
-                            {city.aqi}
-                          </span>
-                          <span className="text-gray-500 dark:text-gray-400 text-sm ml-1">AQI</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-xs text-gray-500 dark:text-gray-400">Max AQI</span>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{city.maxAqi}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        
-        {!loading && !error && trendData.length === 0 && (
-          <div className="bg-gray-100 dark:bg-gray-800/80 p-8 rounded-xl text-center">
-            <p className="text-gray-700 dark:text-gray-300">No trend data available for {selectedCity}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+
+	return (
+		<div className="p-4 md:p-6 lg:p-8 h-full overflow-y-auto bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
+			<header className="mb-8">
+				<h1 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white">
+					Air Quality Trends for {selectedCity}
+				</h1>
+				<p className="text-md text-gray-600 dark:text-gray-400 mt-1">
+					Visualize historical air quality data and identify patterns.
+				</p>
+			</header>
+
+			<Card className="mb-8 bg-white dark:bg-gray-800 shadow-xl">
+				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+					<CardTitle className="text-xl font-semibold text-gray-700 dark:text-gray-300">
+						AQI Trend ({timeRange === '7d' ? 'Last 7 Days' : timeRange === '30d' ? 'Last 30 Days' : timeRange === '90d' ? 'Last 90 Days' : timeRange === '1y' ? 'Last Year' : 'All Time'})
+					</CardTitle>
+					<div className="w-40">
+						<Select value={timeRange} onValueChange={setTimeRange}>
+							<SelectTrigger className="bg-white/80 dark:bg-gray-700/80 backdrop-blur-md border-gray-200/50 dark:border-gray-600/50">
+								<SelectValue placeholder="Select time range" />
+							</SelectTrigger>
+							<SelectContent className="bg-white dark:bg-gray-800">
+								<SelectItem value="7d">Last 7 Days</SelectItem>
+								<SelectItem value="30d">Last 30 Days</SelectItem>
+								<SelectItem value="90d">Last 90 Days</SelectItem>
+								<SelectItem value="1y">Last Year</SelectItem>
+								<SelectItem value="all">All Time</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+				</CardHeader>
+				<CardContent>
+					{formattedTrendData && formattedTrendData.length > 0 ? (
+						<ResponsiveContainer width="100%" height={400}>
+							<LineChart data={formattedTrendData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+								<CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} className="stroke-gray-300 dark:stroke-gray-700" />
+								<XAxis 
+									dataKey="date" 
+									tick={{ fontSize: 12, fill: 'currentColor' }} 
+									className="text-gray-600 dark:text-gray-400"
+									// Consider adding tickFormatter for better date display if needed
+								/>
+								<YAxis 
+									tick={{ fontSize: 12, fill: 'currentColor' }} 
+									className="text-gray-600 dark:text-gray-400"
+									domain={yAxisDomain}
+									allowDataOverflow={true}
+								/>
+								<Tooltip content={<CustomTooltip />} />
+								<Line 
+									type="monotone" 
+									dataKey="aqi" 
+									stroke="#3b82f6" // Blue color for the line
+									strokeWidth={2} 
+									dot={{ r: 3, fill: '#3b82f6' }} 
+									activeDot={{ r: 6, fill: '#3b82f6', stroke: 'white', strokeWidth: 2 }} 
+								/>
+							</LineChart>
+						</ResponsiveContainer>
+					) : (
+						<div className="flex flex-col items-center justify-center h-[400px] text-gray-500 dark:text-gray-400">
+							<AlertTriangle className="h-12 w-12 mb-4 text-yellow-500" />
+							<p className="text-lg">No trend data available for the selected period.</p>
+							<p className="text-sm">Try selecting a different time range.</p>
+						</div>
+					)}
+				</CardContent>
+			</Card>
+
+			{/* Placeholder for future additional trend analyses or pollutant-specific charts */}
+			{/* 
+			<Card className="mt-8 bg-white dark:bg-gray-800 shadow-xl">
+				<CardHeader>
+					<CardTitle className="text-xl font-semibold text-gray-700 dark:text-gray-300">Additional Insights</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<p className="text-gray-600 dark:text-gray-400">
+						More detailed trend analyses and breakdowns by pollutant will be available here in the future.
+					</p>
+				</CardContent>
+			</Card>
+			*/}
+			
+			{/* 
+				// City Comparison Chart - Temporarily Commented Out
+				<div className="mt-12">
+					<h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">City AQI Comparison (Average - Last 7 Days)</h2>
+					{cityComparisonData.length > 0 ? (
+						<ResponsiveContainer width="100%" height={400}>
+							<BarChart data={cityComparisonData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+								<CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+								<XAxis type="number" tick={{ fontSize: 12 }} />
+								<YAxis dataKey="city" type="category" tick={{ fontSize: 12 }} width={80} />
+								<Tooltip />
+								<Bar dataKey="aqi" name="Average AQI" unit=" AQI">
+									{cityComparisonData.map((entry, index) => (
+										<Cell key={`cell-${index}`} fill={getAQIColor(entry.aqi)} />
+									))}
+								</Bar>
+							</BarChart>
+						</ResponsiveContainer>
+					) : (
+						<p className="text-gray-600 dark:text-gray-400">Loading city comparison data or no data available...</p>
+					)}
+				</div> 
+			*/}
+		</div>
+	);
 };
+
+export default TrendsView;

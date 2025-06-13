@@ -1,203 +1,176 @@
+<<<<<<< HEAD
 # 24-Hour DataInsight Hackathon: Fool-Proof Implementation Plan
+=======
+# DataInsight - NYC Air Quality Platform
 
-## 🎯 Project Overview: DataInsight NYC Air Quality Platform
+## 🎯 Project Overview
 
-Transform NYC air quality data into an accessible platform where non-technical users can explore, visualize, and gain insights using natural language, interactive maps, and AI-powered predictions.
+DataInsight is an AI-powered public data platform for NYC air quality analysis, visualization, and prediction. This application provides interactive maps, trend visualizations, and AI-powered predictions based on historical air quality data.
 
----
+## ✅ Completed Implementation
+>>>>>>> 0133123 (Push entire project)
 
-## ⏰ Hour-by-Hour Implementation Timeline
+The project has been fully implemented according to the specified requirements. The following phases have been completed:
 
-### 📋 PREPARATION (Hours 0-1)
-**Hour 0-1: Setup & Planning**
-- Set up GitHub repository with React + Node template
-- Install core dependencies
-- Configure MongoDB Atlas free tier account
-- Assign team roles with clear responsibilities
+### Phase 3: Frontend Foundation & NLP Integration ✅
+- Implemented React Query for efficient data fetching and caching
+- Added robust error and loading states across all components
+- Integrated NLP search functionality with the backend
+- Created interactive map visualization with proper positioning
+- Implemented trends and predictions visualizations
+- Added responsive UI with proper viewport handling
+- Fixed layout issues for better user experience
 
-### 🗃️ PHASE 1: DATA SETUP (Hours 1-4)
-**Hour 1-2: Data Preparation**
-- Clean the NYC Air Quality CSV
-  - Handle null values
-  - Convert date strings to proper date formats
-  - Standardize location names
-  - Save as cleaned CSV
+### 🗃️ PHASE 1: DATA SETUP
+- ✅ MongoDB Atlas setup and configuration
+- ✅ Data import and validation
+- ✅ Index creation for optimal query performance
 
-**Hour 2-3: MongoDB Atlas Setup**
-- Create free cluster on MongoDB Atlas
-- Set up network access (IP whitelist)
-- Create database user with appropriate permissions
-- Set up database structure
+### 🔌 PHASE 2: BACKEND API
+- ✅ Express server with robust API endpoints
+- ✅ MongoDB connection with proper error handling
+- ✅ Data query endpoints with filtering capabilities
+- ✅ Google Gemini API integration for NLP queries
+- ✅ Natural language processing for complex data queries
+- ✅ Prediction endpoint for future air quality estimates
 
-**Hour 3-4: Data Import & Verification**
-- Import cleaned CSV to MongoDB using mongoimport
-- Create indexes for common queries:
-  ```
-  db.airQuality.createIndex({ geoPlaceName: 1 })
-  db.airQuality.createIndex({ timePeriod: 1 })
-  db.airQuality.createIndex({ name: 1 })
-  db.airQuality.createIndex({ startDate: 1 })
-  ```
-- Verify data with sample queries
+### � PHASE 3: FRONTEND FOUNDATION
+- ✅ React with TypeScript and Vite
+- ✅ React Query for efficient data fetching
+- ✅ Robust error and loading states
+- ✅ Responsive UI with Tailwind CSS and shadcn/ui
+- ✅ Dark/light theme support
 
-### 🔌 PHASE 2: BACKEND API (Hours 4-9)
-**Hour 4-5: Core API Setup**
-- Set up Express server with basic routes
-- Configure MongoDB connection
-- Implement error handling middleware
-- Set up CORS and security headers
+### 🗺️ PHASE 4: VISUALIZATION COMPONENTS
+- ✅ Leaflet maps for geographic visualization
+- ✅ Recharts for trend and comparison visualization
+- ✅ Interactive components with proper tooltips
+- ✅ Natural language search interface
 
-**Hour 5-7: Data API Endpoints**
-- Implement `/api/data` endpoint with pagination
-  - Query params: page, limit
-- Create `/api/search` with filtering capabilities
-  - Filter by location, date range, pollutant type
-- Build `/api/stats` for quick statistics
-  - Min/max/avg by location or time period
+### 🔄 PHASE 5: INTEGRATION & POLISH
+- ✅ Component integration with data flow
+- ✅ Responsive design for various devices
+- ✅ Performance optimization
+- ✅ Error handling and fallbacks
 
-**Hour 7-9: AI Integration**
-- Set up OpenAI API or Google NLP API account
-- Implement `/api/nlp-query` endpoint
-  - Convert natural language to MongoDB queries
-- Integrate air quality prediction API (Tomorrow.io or OpenWeatherMap)
-  - Create `/api/predict` endpoint
+## 🌟 Features
 
-### 💻 PHASE 3: FRONTEND FOUNDATION (Hours 9-14)
-**Hour 9-10: Project Scaffolding**
-- Set up React with TypeScript
-- Configure routing with React Router
-- Set up Tailwind CSS
-- Create basic component structure
+- **Natural Language Search**: Search for air quality data using natural language queries (e.g., "Show me nitrogen dioxide levels in Chelsea-Village in 2013")
+- **Interactive Map**: Visualize air quality data on an interactive map with color-coded markers
+- **Trend Analysis**: View historical trends of air quality data for different locations and time periods
+- **AI-Powered Predictions**: Get predictions for future air quality based on historical data
+- **City Comparisons**: Compare air quality across different cities
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Dark/Light Mode**: Supports both dark and light themes
 
-**Hour 10-12: Core UI Components**
-- Build responsive layout
-- Create navigation bar with theme toggle
-- Implement search bar component
-- Design loading states and error handling
+## 🛠️ Technology Stack
 
-**Hour 12-14: Data Fetching**
-- Set up API service layer
-- Implement React Query for data fetching
-- Create custom hooks for data operations
-- Add proper loading and error states
+- **Backend**:
+  - Node.js & Express
+  - MongoDB Atlas
+  - Google Gemini API for NLP processing
+  
+- **Frontend**:
+  - React 18
+  - TypeScript
+  - Tailwind CSS
+  - React Query for data fetching
+  - Leaflet for interactive maps
+  - Recharts for data visualization
+  - shadcn/ui components
 
-### 🗺️ PHASE 4: VISUALIZATION COMPONENTS (Hours 14-19)
-**Hour 14-16: Map Visualization**
-- Integrate Leaflet.js maps
-- Add NYC neighborhood boundaries (GeoJSON)
-- Implement color-coding for pollution levels
-- Add popup information on click
+## � Project Structure
 
-**Hour 16-18: Charts & Trends**
-- Integrate Chart.js or Recharts
-- Create time series chart component
-- Build comparison chart for different locations
-- Implement pollutant type selector
+The project is organized into two main parts:
 
-**Hour 18-19: NLP Search Interface**
-- Build conversational search interface
-- Create results display component
-- Implement auto-suggestions
-- Add loading indicators for API calls
+### Backend (Node.js + Express + MongoDB)
 
-### 🔄 PHASE 5: INTEGRATION & POLISH (Hours 19-23)
-**Hour 19-21: Component Integration**
-- Connect search results to visualizations
-- Link map selections to charts
-- Implement dashboard layout
-- Add responsive design tweaks
+- **Routes**: API endpoints for air quality data, NLP search, trends, and predictions
+- **Controllers**: Business logic for handling API requests
+- **Models**: MongoDB schema definitions for air quality data
+- **Middleware**: Authentication, logging, and error handling
+- **Utils**: Helper functions for data processing and date handling
 
-**Hour 21-22: Testing & Bug Fixes**
-- Test all features on different devices
-- Fix critical bugs
-- Optimize performance
-- Address edge cases
+### Frontend (React + TypeScript + Tailwind CSS)
 
-**Hour 22-23: Final Polish**
-- Add documentation
-- Improve accessibility
-- Implement final UI improvements
-- Prepare demo script
+- **Components**: Reusable UI components including MapView, TrendsView, and PredictionsView
+- **Lib**: API service functions and utility helpers
+- **Pages**: Main application pages and layouts
+- **Hooks**: Custom React hooks for data fetching with React Query
 
-### 🚀 PHASE 6: DEPLOYMENT & DEMO (Hour 23-24)
-**Hour 23-24: Deployment & Preparation**
-- Deploy backend to render.com or similar
-- Deploy frontend to Vercel or Netlify
-- Test production deployment
-- Prepare presentation and demo
+## 🚀 Getting Started
 
----
+### Prerequisites
 
-## 👥 Team Responsibilities
+- Node.js (v16+)
+- MongoDB Atlas account
+- Google Gemini API key
 
-### Backend Developer:
-- MongoDB Atlas setup
-- Express API implementation
-- Data modeling
-- API integration
+### Installation
 
-### Frontend Developer:
-- React component architecture
-- UI implementation
-- Data visualization
-- Responsive design
-
-### Data Engineer:
-- Data cleaning
-- MongoDB import
-- Query optimization
-- Testing data integrity
-
-### UI/UX Lead:
-- Component design
-- User flow design
-- Visual consistency
-- Accessibility
-
-### Project Manager:
-- Timeline tracking
-- Blocker resolution
-- Testing coordination
-- Documentation
-
----
-
-## 🛠️ Technical Implementation Details
-
-### 1. MongoDB Data Model:
-```javascript
-const AirQualitySchema = new mongoose.Schema({
-  uniqueId: { type: String, required: true, index: true },
-  indicatorId: Number,
-  name: String,  // Pollutant name
-  measure: String,
-  measureInfo: String,
-  geoTypeName: String,  // CD (Community District) or UHF (United Hospital Fund)
-  geoJoinId: String,
-  geoPlaceName: String,  // Neighborhood name
-  timePeriod: String,  // "Winter 2020-21", "Summer 2021", etc.
-  startDate: Date,
-  dataValue: Number,  // The actual measurement value
-  message: String
-});
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/datainsight.git
+cd datainsight
 ```
 
-### 2. API Endpoints:
-```
-GET  /api/data?page=1&limit=20
-POST /api/search (with filter body)
-GET  /api/stats/pollutant/:name
-GET  /api/stats/location/:geoPlaceName
-POST /api/nlp-query (with natural language query)
-GET  /api/predict/:location
+2. Install dependencies for backend
+```bash
+cd backend
+npm install
 ```
 
-### 3. NLP Integration (OpenAI):
-```javascript
-// Example implementation
-async function processNaturalLanguageQuery(query) {
-  const response = await openai.createCompletion({
-    model: "gpt-3.5-turbo",
+3. Create a `.env` file in the backend folder with the following variables:
+```
+MONGODB_URI=your_mongodb_atlas_connection_string
+GEMINI_API_KEY=your_gemini_api_key
+PORT=3001
+```
+
+4. Install dependencies for frontend
+```bash
+cd ../frontend
+npm install
+```
+
+5. Start the development servers
+
+Backend:
+```powershell
+cd backend
+npm start
+```
+
+Frontend:
+```powershell
+cd frontend
+npm run dev
+```
+
+6. Open your browser and navigate to `http://localhost:5173`
+
+## 📡 API Endpoints
+
+- `GET /api/v1/air-quality/geo` - Get geolocation data for air quality
+- `POST /api/v1/nlp-search` - Search using natural language
+- `GET /api/v1/air-quality/trends` - Get historical trends data
+- `GET /api/v1/air-quality/predict/:city` - Get predictions for a city
+
+## 🔍 Natural Language Query Examples
+
+- "Show me nitrogen dioxide levels in Chelsea-Village in 2013"
+- "What was the air quality in Brooklyn last summer?"
+- "Compare PM2.5 levels between Upper East Side and Harlem"
+- "Show me the worst air quality days in NYC during 2020"
+- "What's the trend of ozone levels in Queens over the past 5 years?"
+
+## 📊 Future Improvements
+
+- Add user authentication for personalized dashboards
+- Implement more advanced prediction algorithms
+- Add email alerts for poor air quality days
+- Expand to more cities beyond NYC
+- Add more data visualization options
     messages: [
       {
         role: "system",

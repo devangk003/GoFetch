@@ -338,7 +338,7 @@ class AirQualityController {
             }
 
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // Or your preferred Gemini model
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" }); // Using latest Gemini model for better date handling
 
             const currentDate = new Date().toISOString();
 
@@ -365,6 +365,20 @@ class AirQualityController {
                 If user specifies a pollutant like "PM2.5", filter on the "Name" field (e.g., "Fine particles (PM 2.5)")
                 If user specifies "ozone" or "O3", filter on "Name" field for "Ozone (O3)".
                 If user specifies "nitrogen dioxide" or "NO2", filter on "Name" field for "Nitrogen dioxide (NO2)".
+
+                IMPORTANT DATE HANDLING GUIDELINES:
+                1. When a user specifies a date or time period, apply BOTH of these approaches for maximum coverage:
+                   a. Filter by the Start_Date field using ISODate format with proper timezone handling
+                   b. Also include a Time Period filter using regex to match seasonal or annual patterns
+
+                2. When filtering by exact dates, use the Start_Date field with timestamps adjusted to Eastern Time (ET):
+                   - 00:00:00.000 for the start of a day
+                   - 23:59:59.999 for the end of a day
+                   This ensures proper coverage even if the date values in the database have various time components.
+
+                3. For seasonal queries like "Winter 2020" or "Summer 2021", use the Time Period field with a regex pattern:
+                   { "Time Period": { "$regex": "Winter 2020|Winter 2020-21", "$options": "i" } }
+                   { "Time Period": { "$regex": "Summer 2021", "$options": "i" } }
             `;
 
             // Few-shot examples
@@ -374,23 +388,44 @@ class AirQualityController {
                 Current Date: "${currentDate}" 
                 Expected MongoDB Filter (JSON):
                 {
-                  "Name": "Fine particles (PM 2.5)",
-                  "Geo Place Name": { "$regex": "Greenpoint", "$options": "i" },
-                  "Start_Date": { 
-                    "$gte": /* ISODate for start of last March */, 
-                    "$lte": /* ISODate for end of last March */ 
-                  }
+                  "$and": [
+                    { "Name": "Fine particles (PM 2.5)" },
+                    { "Geo Place Name": { "$regex": "Greenpoint", "$options": "i" } },
+                    { 
+                      "$or": [
+                        {
+                          "Start_Date": { 
+                            "$gte": "2025-03-01T00:00:00.000Z", 
+                            "$lte": "2025-03-31T23:59:59.999Z" 
+                          }
+                        },
+                        { "Time Period": { "$regex": "March 2025|Spring 2025", "$options": "i" } }
+                      ]
+                    }
+                  ]
                 }
-                (Note: Gemini should calculate the actual ISODates for 'last March' based on the Current Date. If current date is 2025-06-13, last March is March 2025.)
+                (Note: Use $and and $or operators to combine different filter criteria and increase the chances of matching relevant records)
 
                 Example 2:
                 User Query: "highest ozone in Financial District during summer 2021"
                 Current Date: "${currentDate}"
                 Expected MongoDB Filter (JSON): 
                 {
-                  "Name": "Ozone (O3)",
-                  "Geo Place Name": { "$regex": "Financial District", "$options": "i" },
-                  "Time Period": { "$regex": "Summer 2021", "$options": "i" }
+                  "$and": [
+                    { "Name": "Ozone (O3)" },
+                    { "Geo Place Name": { "$regex": "Financial District", "$options": "i" } },
+                    {
+                      "$or": [
+                        { "Time Period": { "$regex": "Summer 2021", "$options": "i" } },
+                        {
+                          "Start_Date": {
+                            "$gte": "2021-06-21T00:00:00.000Z",
+                            "$lte": "2021-09-22T23:59:59.999Z"
+                          }
+                        }
+                      ]
+                    }
+                  ]
                 }
                 (Note: For 'highest', the sorting will be handled separately, just provide the filter)
 
@@ -399,11 +434,58 @@ class AirQualityController {
                 Current Date: "${currentDate}"
                 Expected MongoDB Filter (JSON):
                 {
-                  "Geo Place Name": { "$regex": "Rockaway and Broad Channel (CD14)", "$options": "i" },
-                  "Start_Date": {
-                    "$gte": "2020-12-01T00:00:00.000Z",
-                    "$lte": "2020-12-31T23:59:59.999Z"
-                  }
+                  "$and": [
+                    { "Geo Place Name": { "$regex": "Rockaway and Broad Channel", "$options": "i" } },
+                    {
+                      "$or": [
+                        {
+                          "Start_Date": {
+                            "$gte": "2020-12-01T00:00:00.000Z",
+                            "$lte": "2020-12-31T23:59:59.999Z"
+                          }
+                        },
+                        { "Time Period": { "$regex": "December 2020|Winter 2020|Winter 2020-21", "$options": "i" } }
+                      ]
+                    }
+                  ]
+                }
+
+                Example 4:
+                User Query: "Nitrogen dioxide in Chelsea-Village on December 1, 2013"
+                Current Date: "${currentDate}"
+                Expected MongoDB Filter (JSON):
+                {
+                  "$and": [
+                    { "Name": "Nitrogen dioxide (NO2)" },
+                    { "Geo Place Name": { "$regex": "Chelsea-Village", "$options": "i" } },
+                    {
+                      "$or": [
+                        { 
+                          "Start_Date": {
+                            "$gte": "2013-12-01T00:00:00.000Z",
+                            "$lte": "2013-12-01T23:59:59.999Z"
+                          }
+                        },
+                        { "Time Period": { "$regex": "Winter 2013|Winter 2013-14|December 2013", "$options": "i" } }
+                      ]
+                    }
+                  ]
+                }
+
+                Example 5:
+                User Query: "Air quality in Brooklyn yesterday"
+                Current Date: "${currentDate}"
+                Expected MongoDB Filter (JSON):
+                {
+                  "$and": [
+                    { "Geo Place Name": { "$regex": "Brooklyn", "$options": "i" } },
+                    {
+                      "Start_Date": {
+                        "$gte": "2025-06-12T00:00:00.000Z", 
+                        "$lte": "2025-06-12T23:59:59.999Z"
+                      }
+                    }
+                  ]
                 }
             `;
 
@@ -411,10 +493,22 @@ class AirQualityController {
                 You are an expert at converting natural language queries into MongoDB query filter objects.
                 Based on the user's query, the provided MongoDB collection schema, and the current date, generate a valid JSON object that can be used as a filter in a MongoDB find() operation.
                 The current date is: ${currentDate}. Use this to resolve relative dates like "last month", "yesterday", "next year".
-                Ensure all date strings in the output are valid ISODate strings (e.g., "YYYY-MM-DDTHH:mm:ss.sssZ").
-                For month-only queries (e.g., "December 2020"), the date range should span the entire month.
-                If a user query implies sorting (e.g., "highest", "lowest", "most recent"), do NOT include sort parameters in the filter object. Sorting will be handled separately. Just provide the filter criteria.
-                If the user query is too vague or does not provide enough information to form a specific filter, return an empty JSON object {}.
+                
+                DATE HANDLING REQUIREMENTS:
+                1. Always use the Eastern Time (ET) timezone when interpreting dates.
+                2. For exact dates, create filters for both Start_Date (ISO format) AND Time Period (descriptive text).
+                3. Use $and and $or operators liberally to create a robust filter that increases the chance of matching records.
+                4. For month/season queries, include multiple possible Time Period patterns (e.g., "Winter 2020", "Winter 2020-21").
+                5. For specific days, set time components explicitly: start of day (T00:00:00.000Z) to end of day (T23:59:59.999Z).
+                
+                ADDITIONAL INSTRUCTIONS:
+                - Ensure all date strings in the output are valid ISODate strings (e.g., "YYYY-MM-DDTHH:mm:ss.sssZ").
+                - If a user query implies sorting (e.g., "highest", "lowest", "most recent"), do NOT include sort parameters in the filter.
+                - If the user query is too vague, provide a basic filter with the elements you can determine rather than an empty object.
+                - Always use $and and $or operators to combine different filtering criteria for maximum coverage.
+                  RESPONSE FORMAT:
+                - Return ONLY the JSON object itself, with no markdown formatting, no code blocks, and no explanation text.
+                - The response should be directly parseable as a valid JSON object.
 
                 Schema:
                 ${schemaDescription}
@@ -437,34 +531,54 @@ class AirQualityController {
                 console.error('Gemini API Error:', geminiError);
                 return res.status(500).json({ success: false, message: 'Error calling Gemini NLP service.', error: geminiError.message });
             }
+              console.log("[GEMINI DEBUG] Raw response text from Gemini:", geminiResponseText);
             
-            console.log("[GEMINI DEBUG] Raw response text from Gemini:", geminiResponseText);
-
             let mongoFilter = {};
             try {
-                // Gemini might wrap the JSON in backticks or add "json" prefix
-                // More robust cleaning for newlines and markdown code blocks
-                let cleanedResponse = geminiResponseText.trim();
-                if (cleanedResponse.startsWith("```json")) {
-                    cleanedResponse = cleanedResponse.substring(7);
-                } else if (cleanedResponse.startsWith("```")) {
-                    cleanedResponse = cleanedResponse.substring(3);
+                // Improved cleaning logic to handle Markdown code blocks
+                let cleanedResponse = geminiResponseText;
+                
+                // Remove markdown code block markers
+                if (cleanedResponse.includes('```')) {
+                    // Extract content between opening and closing backticks
+                    const startMarker = cleanedResponse.indexOf('{');
+                    const endMarker = cleanedResponse.lastIndexOf('}');
+                    
+                    if (startMarker !== -1 && endMarker !== -1 && endMarker > startMarker) {
+                        cleanedResponse = cleanedResponse.substring(startMarker, endMarker + 1);
+                    } else {
+                        // If JSON object boundaries not found, try standard cleaning
+                        cleanedResponse = cleanedResponse.replace(/```json\s?/g, '').replace(/```\s?/g, '');
+                    }
                 }
-                if (cleanedResponse.endsWith("```")) {
-                    cleanedResponse = cleanedResponse.substring(0, cleanedResponse.length - 3);
-                }
+                
+                // Trim whitespace
                 cleanedResponse = cleanedResponse.trim();
+                
+                console.log("[GEMINI DEBUG] Cleaned response for parsing:", cleanedResponse);
                 
                 mongoFilter = JSON.parse(cleanedResponse);
                 console.log("[GEMINI DEBUG] Parsed MongoDB filter from Gemini:", mongoFilter);
             } catch (parseError) {
                 console.error('Error parsing MongoDB filter from Gemini response:', parseError);
                 console.error('[GEMINI DEBUG] Failed to parse this text from Gemini:', geminiResponseText);
-                return res.status(500).json({ 
-                    success: false, 
-                    message: 'Error parsing NLP response. The AI returned a malformed filter.',
-                    rawResponse: geminiResponseText 
-                });
+                
+                // Fallback approach - try JSON5 or manual cleaning if available
+                try {
+                    // Basic manual cleaning as fallback
+                    let manualCleaned = geminiResponseText;
+                    if (manualCleaned.includes('```json')) {
+                        manualCleaned = manualCleaned.substring(manualCleaned.indexOf('{'), manualCleaned.lastIndexOf('}') + 1);
+                    }
+                    mongoFilter = JSON.parse(manualCleaned);
+                    console.log("[GEMINI DEBUG] Parsed MongoDB filter using fallback method:", mongoFilter);
+                } catch (fallbackError) {
+                    return res.status(500).json({ 
+                        success: false, 
+                        message: 'Error parsing NLP response. The AI returned a malformed filter.',
+                        rawResponse: geminiResponseText 
+                    });
+                }
             }
 
             // Basic validation: ensure it's an object
@@ -480,51 +594,120 @@ class AirQualityController {
             // --- Pagination and Sorting (can be adapted from your previous nlpSearch) ---
             const page = parseInt(req.query.page) || 1;
             const limit = parseInt(req.query.limit) || 20;
-            // Default sort or allow user to specify via query params (e.g., ?sortBy=Data Value&sortOrder=desc)
-            // For "highest X" type queries, Gemini won't add sort, so we might need separate logic
-            // or instruct Gemini to also suggest sort fields if the query implies it.
-            // For now, let's use a default sort or allow client to specify.
-            const sortBy = req.query.sortBy || 'Start_Date'; 
-            const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+            
+            // Default sort or allow user to specify via query params
+            let sortBy = req.query.sortBy || 'Start_Date'; 
+            let sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+
+            // Detect if the original query implies sorting by value (e.g., "highest", "lowest", etc.)
+            const hasHighestTerm = query.toLowerCase().includes('highest') || 
+                                  query.toLowerCase().includes('max') || 
+                                  query.toLowerCase().includes('maximum') || 
+                                  query.toLowerCase().includes('worst') || 
+                                  query.toLowerCase().includes('peak');
+                                  
+            const hasLowestTerm = query.toLowerCase().includes('lowest') || 
+                                 query.toLowerCase().includes('min') || 
+                                 query.toLowerCase().includes('minimum') || 
+                                 query.toLowerCase().includes('best') || 
+                                 query.toLowerCase().includes('cleanest');
+                                 
+            const hasRecentTerm = query.toLowerCase().includes('recent') || 
+                                 query.toLowerCase().includes('latest') || 
+                                 query.toLowerCase().includes('newest');
+                                 
+            const hasOldestTerm = query.toLowerCase().includes('oldest') || 
+                                 query.toLowerCase().includes('earliest') || 
+                                 query.toLowerCase().includes('first');
+
+            // Adjust sorting based on detected terms
+            if (hasHighestTerm) {
+                sortBy = 'Data Value';
+                sortOrder = -1; // descending
+                console.log('[GEMINI DEBUG] Detected "highest" term, sorting by Data Value descending');
+            } else if (hasLowestTerm) {
+                sortBy = 'Data Value';
+                sortOrder = 1; // ascending
+                console.log('[GEMINI DEBUG] Detected "lowest" term, sorting by Data Value ascending');
+            } else if (hasRecentTerm) {
+                sortBy = 'Start_Date';
+                sortOrder = -1; // descending (newest first)
+                console.log('[GEMINI DEBUG] Detected "recent" term, sorting by Start_Date descending');
+            } else if (hasOldestTerm) {
+                sortBy = 'Start_Date';
+                sortOrder = 1; // ascending (oldest first)
+                console.log('[GEMINI DEBUG] Detected "oldest" term, sorting by Start_Date ascending');
+            }
 
             const searchOptions = {
                 page: page,
                 limit: limit,
                 sortBy: sortBy,
-                sortOrder: sortOrder,
-                // We are not passing specific filter fields like location, startDate to AirQualityModel.findAll
-                // as mongoFilter from Gemini should contain all necessary query conditions.
+                sortOrder: sortOrder
             };
             
-            // If Gemini identified a "highest" or "lowest" type query, we might need to adjust sortBy and sortOrder here.
-            // This part requires more sophisticated handling or clearer instructions to Gemini.
-            // For example, if the original query was "highest PM2.5", we should sort by "Data Value" descending.
-            // This logic is NOT yet implemented here and would be an enhancement.
-
-            console.log(`[GEMINI DEBUG] Using filter for MongoDB: ${JSON.stringify(mongoFilter)}`);
-            console.log(`[GEMINI DEBUG] Using options for MongoDB: ${JSON.stringify(searchOptions)}`);
-
             // Use findAll with the Gemini-generated filter.
             // The 'searchTerm' (first param) for AirQualityModel.search is not directly applicable here
             // unless Gemini also provides a general search term.
             // We'll use findAll which is more suited for applying a filter object.
             const searchResult = await AirQualityModel.findAll(mongoFilter, searchOptions);
 
+            // Create a human-readable interpretation of the filter for better user understanding
+            let filterInterpretation = '';
+            try {
+                if (mongoFilter.Name) {
+                    filterInterpretation += `Pollutant: ${mongoFilter.Name}. `;
+                }
+                if (mongoFilter['Geo Place Name']) {
+                    filterInterpretation += `Location: ${mongoFilter['Geo Place Name'].$regex || mongoFilter['Geo Place Name']}. `;
+                }
+                if (mongoFilter.Start_Date) {
+                    const start = mongoFilter.Start_Date.$gte ? new Date(mongoFilter.Start_Date.$gte).toLocaleDateString() : 'any time';
+                    const end = mongoFilter.Start_Date.$lte ? new Date(mongoFilter.Start_Date.$lte).toLocaleDateString() : 'now';
+                    filterInterpretation += `Date range: ${start} to ${end}. `;
+                }
+                if (mongoFilter.Time_Period) {
+                    filterInterpretation += `Time period: ${mongoFilter.Time_Period.$regex || mongoFilter.Time_Period}. `;
+                }
+                if (mongoFilter.$and) {
+                    filterInterpretation = 'Combined multiple filters: ';
+                    mongoFilter.$and.forEach(filter => {
+                        if (filter.Name) filterInterpretation += `Pollutant: ${filter.Name}. `;
+                        if (filter['Geo Place Name']) filterInterpretation += `Location: ${filter['Geo Place Name'].$regex || filter['Geo Place Name']}. `;
+                        if (filter.Start_Date) {
+                            const start = filter.Start_Date.$gte ? new Date(filter.Start_Date.$gte).toLocaleDateString() : 'any time';
+                            const end = filter.Start_Date.$lte ? new Date(filter.Start_Date.$lte).toLocaleDateString() : 'now';
+                            filterInterpretation += `Date range: ${start} to ${end}. `;
+                        }
+                        if (filter.Time_Period) filterInterpretation += `Time period: ${filter.Time_Period.$regex || filter.Time_Period}. `;
+                        if (filter.$or) filterInterpretation += `With alternative conditions. `;
+                    });
+                }
+            } catch (interpretationError) {
+                filterInterpretation = 'Complex filter applied (see details in query).';
+            }
+
+            // Add sorting information
+            const sortingInterpretation = `Results sorted by ${sortBy} in ${sortOrder === 1 ? 'ascending' : 'descending'} order.`;
+
             res.json({
                 success: true,
                 message: 'NLP query processed using Gemini API.',
                 originalQuery: query,
-                geminiRawResponse: geminiResponseText, // For debugging
+                filterInterpretation: filterInterpretation,
+                sortingInterpretation: sortingInterpretation,
+                geminiRawResponse: geminiResponseText,
                 interpretedMongoFilter: mongoFilter,
-                data: searchResult.data,
-                pagination: searchResult.pagination
+                ...searchResult
             });
 
         } catch (error) {
-            console.error('Error in nlpSearch (Gemini):', error);
-            // Avoid sending detailed internal errors or stack traces to the client in production
-            const errorMessage = process.env.NODE_ENV === 'development' ? error.message : 'NLP search failed due to an internal error.';
-            res.status(500).json({ success: false, message: 'NLP search failed', error: errorMessage });
+            console.error('Error in nlpSearch:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to process natural language query',
+                error: error.message
+            });
         }
     }
     

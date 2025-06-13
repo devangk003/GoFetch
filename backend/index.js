@@ -9,6 +9,8 @@ const config = require('./config/config');
 const database = require('./database/connection');
 const AirQualityModel = require('./models/AirQuality');
 const routes = require('./routes/index');
+const waqiRoutes = require('./routes/waqi'); // Added
+const aiRoutes = require('./routes/aiRoutes'); // Import AI routes
 const { errorHandler, notFound, requestLogger } = require('./middleware/middleware');
 
 const app = express();
@@ -28,7 +30,7 @@ app.use(helmet({
 
 // CORS configuration
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'],
+    origin: ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:8080', '*'],
     credentials: true,
     optionsSuccessStatus: 200
 }));
@@ -60,7 +62,9 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
-app.use(config.API_VERSION, routes);
+app.use(`${config.API_VERSION}/ai`, aiRoutes); // Mount AI routes first
+app.use(`${config.API_VERSION}/waqi`, waqiRoutes); // Mount WAQI routes
+app.use(config.API_VERSION, routes); // General API routes
 
 // Root endpoint
 app.get('/', (req, res) => {
