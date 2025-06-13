@@ -1,8 +1,3 @@
-mongodb+srv://kumawatdevang425:<db_password>@m0cluster.igwgkiy.mongodb.net/
-
-
-
-db password is: 3aSutKTjW944MuwD
 # 24-Hour DataInsight Hackathon: Fool-Proof Implementation Plan
 
 ## 🎯 Project Overview: DataInsight NYC Air Quality Platform
