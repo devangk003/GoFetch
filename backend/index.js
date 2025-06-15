@@ -54,7 +54,7 @@ app.use(express.static(__dirname));
 app.get('/health', (req, res) => {
     res.json({
         success: true,
-        message: 'DataInsight API Server is running',
+        message: 'GoFetch API Server is running',
         timestamp: new Date().toISOString(),
         version: '1.0.0',
         environment: config.NODE_ENV
@@ -70,7 +70,7 @@ app.use(config.API_VERSION, routes); // General API routes
 app.get('/', (req, res) => {
     res.json({
         success: true,
-        message: 'Welcome to DataInsight Platform API',
+        message: 'Welcome to GoFetch Platform API',
         version: '1.0.0',
         documentation: '/api/v1',
         health: '/health'
@@ -84,7 +84,7 @@ app.use(errorHandler);
 // Initialize database and start server
 async function startServer() {
     try {
-        console.log('🚀 Starting DataInsight API Server...');
+        console.log('🚀 Starting GoFetch API Server...');
         
         // Connect to MongoDB
         await database.connect();
@@ -95,7 +95,7 @@ async function startServer() {
         
         // Start server
         const server = app.listen(config.PORT, () => {
-            console.log(`🌟 DataInsight API Server running on port ${config.PORT}`);
+            console.log(`🌟 GoFetch API Server running on port ${config.PORT}`);
             console.log(`📊 Environment: ${config.NODE_ENV}`);
             console.log(`🔗 API Base URL: http://localhost:${config.PORT}${config.API_VERSION}`);
             console.log(`❤️  Health Check: http://localhost:${config.PORT}/health`);

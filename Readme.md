@@ -18,7 +18,7 @@ Public datasets hold immense potential to inform decisions and drive change, but
 
 ## 💡 Solution
 
-DataInsight bridges this gap by providing:
+GoFetch bridges this gap by providing:
 - **Natural Language Querying**: Ask questions in plain English—no coding required
 - **Real-Time Insights**: Always see the latest data and trends
 - **AI Predictive Analytics**: Get forecasts and recommendations to inform decisions

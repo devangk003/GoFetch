@@ -1,4 +1,4 @@
-# Running the DataInsight Application
+# Running the GoFetch Application
 
 ## Prerequisites
 

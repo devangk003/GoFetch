@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Air Quality Data MongoDB Import Script for DataInsight Platform
+Air Quality Data MongoDB Import Script for GoFetch Platform
 ================================================================
 
-This script imports NYC air quality data from the new CSV to MongoDB Atlas for the DataInsight platform.
+This script imports NYC air quality data from the new CSV to MongoDB Atlas for the GoFetch platform.
 It includes data preparation, batch importing, index creation, and query testing.
 
 Usage:
@@ -29,8 +29,8 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-class DataInsightMongoImporter:
-    """MongoDB importer for DataInsight NYC air quality data"""
+class GoFetchMongoImporter:
+    """MongoDB importer for GoFetch NYC air quality data"""
     
     def __init__(self):
         """Initialize the MongoDB importer with configuration"""
@@ -227,7 +227,7 @@ class DataInsightMongoImporter:
         print("🔗 Creating indexes for optimal query performance...")
         
         try:
-            # Create various indexes for DataInsight platform tailored to the new NYC dataset
+            # Create various indexes for GoFetch platform tailored to the new NYC dataset
             indexes = [
                 ("Date", 1),  # Date index for time-series queries
                 ("Geo Join ID", 1),  # Geographical region index
@@ -277,13 +277,13 @@ class DataInsightMongoImporter:
             return False
     
     def test_queries(self):
-        """Test various query patterns for DataInsight platform"""
+        """Test various query patterns for GoFetch platform"""
         
         if self.collection is None:
             print("❌ No MongoDB connection available for testing")
             return False
         
-        print("🧪 Testing MongoDB queries for DataInsight platform...")
+        print("🧪 Testing MongoDB queries for GoFetch platform...")
         
         try:
             # 1. Basic count
@@ -345,7 +345,7 @@ class DataInsightMongoImporter:
                 print(f"  • {place['_id']}: {place['avg_value']:.2f} ppb ({place['count']} records)")
             
             print("\n✅ All test queries completed successfully!")
-            print("🚀 MongoDB is ready for DataInsight platform integration!")
+            print("🚀 MongoDB is ready for GoFetch platform integration!")
             
             return True
             
@@ -356,7 +356,7 @@ class DataInsightMongoImporter:
     def print_summary(self):
         """Print final summary and next steps"""
         print("\n" + "="*70)
-        print("🎯 MONGODB IMPORT SUMMARY FOR DATAINSIGHT NYC AIR QUALITY")
+        print("🎯 MONGODB IMPORT SUMMARY FOR GOFETCH NYC AIR QUALITY")
         print("="*70)
         
         if self.collection is not None:
@@ -372,7 +372,7 @@ class DataInsightMongoImporter:
             print(f"  ✅ Text indexes for natural language search")
             print(f"  ✅ Compound indexes for complex queries")
             
-            print(f"\n🚀 READY FOR DATAINSIGHT FEATURES:")
+            print(f"\n🚀 READY FOR GOFETCH FEATURES:")
             print(f"  🗺️ NYC neighborhood-based air quality mapping")
             print(f"  🔍 Natural language search capabilities")
             print(f"  📈 Time-series analysis and forecasting")
@@ -390,7 +390,7 @@ class DataInsightMongoImporter:
         print(f"  Collection: {self.collection_name}")
         
         print("\n" + "="*70)
-        print("🎉 NYC DATAINSIGHT PLATFORM READY FOR DEVELOPMENT!")
+        print("🎉 NYC GOFETCH PLATFORM READY FOR DEVELOPMENT!")
         print("="*70)
     
     def close_connection(self):
@@ -401,11 +401,11 @@ class DataInsightMongoImporter:
 
 def main():
     """Main function to run the import process"""
-    print("🌟 NYC DataInsight Air Quality Data MongoDB Import")
+    print("🌟 NYC GoFetch Air Quality Data MongoDB Import")
     print("=" * 50)
     
     # Initialize importer
-    importer = DataInsightMongoImporter()
+    importer = GoFetchMongoImporter()
     
     # Connect to MongoDB
     if not importer.connect_mongodb():

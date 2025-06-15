@@ -1,4 +1,4 @@
-# Requirements for DataInsight MongoDB Import
+# Requirements for GoFetch MongoDB Import
 # ==========================================
 
 # Core data processing

@@ -24,7 +24,7 @@ router.get('/data', airQualityController.getAllData);
 router.get('/', (req, res) => {
     res.json({
         success: true,
-        message: 'DataInsight Platform API',
+        message: 'GoFetch Platform API',
         version: 'v1',
         timestamp: new Date().toISOString(),        endpoints: {
             'GET /data': 'Get all air quality data with pagination',

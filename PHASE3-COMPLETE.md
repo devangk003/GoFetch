@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase 3 of the DataInsight NYC Air Quality Platform has been successfully completed. This phase focused on building the frontend foundation with React, TypeScript, and integrating data fetching with React Query.
+Phase 3 of the GoFetch NYC Air Quality Platform has been successfully completed. This phase focused on building the frontend foundation with React, TypeScript, and integrating data fetching with React Query.
 
 ## Completed Tasks
 
@@ -72,5 +72,5 @@ While Phase 3 is complete, there are a few areas that could be enhanced in futur
 
 ## Conclusion
 
-The completion of Phase 3 marks a significant milestone in the development of the DataInsight platform. The frontend now has a solid foundation with React Query for data fetching, robust error and loading states, and a smooth user experience across all components. The final integration of the search bar into the navigation bar completes the UI improvements, creating a more professional and cohesive user interface.
+The completion of Phase 3 marks a significant milestone in the development of the GoFetch platform. The frontend now has a solid foundation with React Query for data fetching, robust error and loading states, and a smooth user experience across all components. The final integration of the search bar into the navigation bar completes the UI improvements, creating a more professional and cohesive user interface.
 

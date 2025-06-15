@@ -1,6 +1,6 @@
-# DataInsight MongoDB Import Guide
+# GoFetch MongoDB Import Guide
 
-This directory contains tools for importing air quality data into MongoDB for the DataInsight platform.
+This directory contains tools for importing air quality data into MongoDB for the GoFetch platform.
 
 ## 📁 Files Overview
 
@@ -76,7 +76,7 @@ The import process will:
 - ✅ Test queries to ensure everything works
 
 **Database Structure:**
-- **Database:** `datainsight_db`
+- **Database:** `gofetch_db`
 - **Collection:** `air_quality_data`
 - **Documents:** ~105 air quality measurements
 - **Indexes:** Date, State, AQI, Geospatial, Compound
@@ -120,7 +120,7 @@ db.air_quality_data.aggregate([
 ])
 ```
 
-## 🚀 Integration with DataInsight Platform
+## 🚀 Integration with GoFetch Platform
 
 The imported data is ready for:
 
@@ -166,4 +166,4 @@ For issues or questions:
 
 ---
 
-**Happy coding! 🎉 Your air quality data is ready for the DataInsight platform!**
+**Happy coding! 🎉 Your air quality data is ready for the GoFetch platform!**

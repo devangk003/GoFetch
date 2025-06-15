@@ -1,7 +1,6 @@
-{
-  "name": "datainsight-backend",
+{  "name": "gofetch-backend",
   "version": "1.0.0",
-  "description": "DataInsight Platform Backend API for Air Quality Data",
+  "description": "GoFetch Platform Backend API for Air Quality Data",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -29,9 +28,9 @@
     "air-quality",
     "mongodb",
     "api",
-    "datainsight",
+    "gofetch",
     "express"
   ],
-  "author": "DataInsight Team",
+  "author": "GoFetch Team",
   "license": "MIT"
 }

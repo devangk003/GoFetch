@@ -54,7 +54,7 @@ def verify_import():
             print(f"  • {idx['name']}")
         
         print("\n✅ MongoDB import verification completed!")
-        print("🚀 Ready for DataInsight platform development!")
+        print("🚀 Ready for GoFetch platform development!")
         
         client.close()
         return True

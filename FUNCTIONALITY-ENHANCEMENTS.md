@@ -2,7 +2,7 @@
 
 ## Overview
 
-This update focused on ensuring the DataInsight platform is fully functional by connecting all API endpoints and enhancing error handling. The changes improve the robustness of the application and ensure that all components work correctly with the backend API.
+This update focused on ensuring the GoFetch platform is fully functional by connecting all API endpoints and enhancing error handling. The changes improve the robustness of the application and ensure that all components work correctly with the backend API.
 
 ## Completed Enhancements
 
