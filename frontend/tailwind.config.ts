@@ -18,6 +18,9 @@ export default {
 			}
 		},
 		extend: {
+      fontFamily: {
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif', '"Apple Color Emoji"', '"Segoe UI Emoji"', '"Segoe UI Symbol"'],
+      },
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -63,6 +66,15 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
+      boxShadow: {
+        'glass': '0 8px 32px 0 hsl(var(--primary) / var(--glass-shadow-opacity))',
+      },
+      backdropBlur: {
+        'glass': 'var(--glass-blur)',
+      },
+      saturate: {
+        'glass': 'var(--glass-saturation)',
+      },
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',

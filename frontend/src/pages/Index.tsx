@@ -119,24 +119,22 @@ const IndexPage: React.FC = () => {
   };
 
   const handleMapMarkerClick = useCallback((data: GeoData) => {
-    // Collect all entries matching this marker's location
-    const matchingEntries: SearchResultData[] = searchResults
-      .filter(item => item.latitude === data.latitude && item.longitude === data.longitude)
-      .map(item => ({
-        name: item.name || item.city || 'Selected Location',
-        pollutant: item.pollutant_name || item.parameter || 'AQI',
-        value: item.value !== undefined ? item.value : item.aqi,
-        date: item.date || new Date().toLocaleDateString(),
-        timePeriod: item.timePeriod || item.time_period,
-        areaType: item.geoTypeName || item.geo_entity_name,
-        indicatorId: item.indicatorId || item.indicator_id,
-        imageUrl: `https://source.unsplash.com/400x200/?${encodeURIComponent(item.name || item.city || 'location')}`,
-        latitude: item.latitude,
-        longitude: item.longitude,
-      }));
-    setSidebarData(matchingEntries);
-    setIsSidebarOpen(true); // Ensure sidebar opens on marker click
-    setSelectedMapData(data); 
+    // Build a sidebar entry for the clicked marker
+    const entry: SearchResultData = {
+      name: data.name || data.city || 'Location',
+      pollutant: data.pollutant_name || data.parameter || 'AQI',
+      value: data.value !== undefined ? data.value : data.aqi,
+      date: data.date || new Date().toLocaleDateString(),
+      timePeriod: data.timePeriod || data.time_period,
+      areaType: data.geoTypeName || data.geo_entity_name,
+      indicatorId: data.indicatorId || data.indicator_id,
+      imageUrl: `https://source.unsplash.com/400x200/?${encodeURIComponent(data.name || data.city || 'location')}`,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    };
+    setSidebarData([entry]);
+    setIsSidebarOpen(true);
+    setSelectedMapData(data);
   }, [searchResults]); // include searchResults
 
   // For the X button in the sidebar - full close and reset map selection

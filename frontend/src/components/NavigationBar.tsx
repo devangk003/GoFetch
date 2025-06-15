@@ -36,8 +36,8 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   ];
 
   return (
-    // Changed to flex, items-center, and justify-between for layout
-    <div className="flex w-full items-center justify-between gap-4 p-2 bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-[1000]">
+    // Apply glass-effect and remove redundant classes for background, blur, and border
+    <div className="flex w-full items-center justify-between gap-4 p-2 glass-effect sticky top-0 z-[1000]">
       {/* Search Bar on the left - takes up available space */}
       {showSearch && (
         <div className="flex-grow min-w-[300px] sm:min-w-[400px] md:max-w-2xl lg:max-w-3xl">
@@ -55,7 +55,8 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
 
       {/* Navigation items and Theme Toggle on the right */}
       <div className="flex items-center gap-3 flex-shrink-0">
-        <nav className="flex bg-muted/60 dark:bg-muted/60 backdrop-blur-md rounded-full p-1 border border-border/50">
+        {/* Removed glass-effect, added subtle background and border for the nav group */}
+        <nav className="flex bg-foreground/5 dark:bg-background/5 backdrop-blur-sm rounded-full p-1 border border-foreground/10 dark:border-background/10">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -63,10 +64,10 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
                 key={item.id}
                 onClick={() => onViewChange(item.id)}
                 className={cn(
-                  'flex items-center space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all duration-200 text-xs sm:text-sm font-medium',
+                  'flex items-center space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all duration-300 ease-in-out text-xs sm:text-sm font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-opacity-75',
                   currentView === item.id
-                    ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'text-muted-foreground hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-foreground'
+                    ? 'bg-primary/80 text-primary-foreground shadow-md' // Active state can retain stronger styling
+                    : 'text-foreground/70 hover:bg-foreground/10 dark:hover:bg-background/10 hover:text-foreground' // Inactive state
                 )}
               >
                 <Icon size={16} className="sm:mr-1.5" />
@@ -75,11 +76,8 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
             );
           })}
         </nav>
+        {/* Apply glass-effect styling directly to ThemeToggle */}
         <ThemeToggle />
-        {/* You could add other icons/buttons here as well */}
-        {/* <button className="p-2 rounded-full hover:bg-muted/80">
-          <Settings2 size={18} className="text-muted-foreground" />
-        </button> */}
       </div>
     </div>
   );

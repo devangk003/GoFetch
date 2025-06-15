@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/card";
 import { GeoData } from '@/lib/api'; // Import GeoData
 import { HeatmapPoint } from '../lib/mapConfig'; // Import HeatmapPoint
+import { fetchWaqiStationsByBounds } from '../lib/api'; // Import WAQI bounds fetch
 
 export interface MapViewProps { // Export the interface
   searchQuery: string;
@@ -77,6 +78,42 @@ export const MapView: React.FC<MapViewProps> = ({
 }) => {
   const { data: geoDataFallback, isLoading: isGeoDataLoading, error: geoDataError } = useGeoData();
   
+  // New WAQI real-time stations state
+  const [waqiStations, setWaqiStations] = useState<GeoData[]>([]);
+  const [isWaqiLoading, setIsWaqiLoading] = useState(false);
+  const [waqiError, setWaqiError] = useState<string | null>(null);
+
+  // Fetch WAQI stations within NYC bounds on mount or when map reset
+  useEffect(() => {
+    setIsWaqiLoading(true);
+    setWaqiError(null);
+    const sw = NYC_BOUNDS.getSouthWest();
+    const ne = NYC_BOUNDS.getNorthEast();
+    fetchWaqiStationsByBounds(sw.lat, sw.lng, ne.lat, ne.lng)
+      .then((stations) => {
+        // Transform WAQI API station list to GeoData shape
+        const data = (stations || [])
+          .filter((s: any) => s.aqi !== '-' && s.lat != null && s.lon != null)
+          .map((s: any) => ({
+            id: s.uid,
+            latitude: s.lat,
+            longitude: s.lon,
+            aqi: Number(s.aqi),
+            value: Number(s.aqi),
+            name: s.station.name,
+            city: s.station.name,
+            date: new Date().toISOString(),
+            pollutant_name: 'AQI'
+          }));
+        setWaqiStations(data);
+      })
+      .catch((err) => {
+        console.error('Error fetching WAQI stations:', err);
+        setWaqiError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => setIsWaqiLoading(false));
+  }, [mapViewportResetKey]);
+
   const [mapInitialized, setMapInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('markers');
@@ -238,8 +275,20 @@ export const MapView: React.FC<MapViewProps> = ({
         return; // Exit early if geoData is loading and no search is active
       }
 
-      // Prioritize search results if a query exists, otherwise use geoDataFallback
-      const currentData: GeoData[] = searchQuery ? (searchResults || []) : (geoDataFallback || []);
+      // Determine data source: search results > real-time WAQI > fallback geoData
+      let currentData: GeoData[] = [];
+      let dataSource = 'fallback'; // For logging
+      if (searchQuery) {
+        currentData = searchResults || [];
+        dataSource = 'search';
+      } else if (!isWaqiLoading && waqiStations.length > 0) {
+        currentData = waqiStations;
+        dataSource = 'waqi';
+      } else {
+        currentData = geoDataFallback || [];
+        dataSource = 'fallback';
+      }
+      console.log(`[MapView Data Source] Source: ${dataSource}, Count: ${currentData.length}, Search Query: '${searchQuery}', WAQI Loading: ${isWaqiLoading}, GeoData Loading: ${isGeoDataLoading}`);
       
       // Handle errors from geoData fetching if no search is active and geoData has finished loading
       if (!searchQuery && !isGeoDataLoading && geoDataError) {
@@ -335,27 +384,81 @@ export const MapView: React.FC<MapViewProps> = ({
         })
         .filter(Boolean);
       
+      console.log(`[MapView Points Processing] pointsWithCoords count: ${pointsWithCoords.length}`);
+
       // If no valid points, show error
       if (!hasValidPoints || pointsWithCoords.length === 0) {
         setError('Could not plot data - no valid coordinates found');
         return;
       }
       
+      console.log(`[MapView View Mode] Current viewMode: ${viewMode}`);
       // Add visualization based on view mode
       if (viewMode === 'markers') {
+        console.log('[MapView Markers] Entering markers rendering block.'); // New log
         // Create circle markers
         activeMarkersRef.current = []; // Clear previous active markers
         pointsWithCoords.forEach((point: any) => { // point now includes originalData
-          const circleMarker = L.circleMarker([point.computedLat, point.computedLng], {
+          const originalColor = getAqiColor(point.value);
+          let colorForMarker = originalColor;
+          let markerOptions: L.CircleMarkerOptions = {
             radius: 8,
-            fillColor: getAqiColor(point.value),
-            color: '#fff',
+            fillColor: originalColor, // Default to original calculated color
+            color: '#fff', // Stroke color
             weight: 1,
             opacity: 1,
             fillOpacity: 0.8
-          });
+          };
+
+          if (dataSource === 'waqi') {
+            colorForMarker = '#FF00FF'; // Bright Magenta for testing
+            markerOptions.fillColor = colorForMarker; // Ensure test color is in options
+            // Log remains for WAQI test case, but primary check is visual + SVG manipulation log
+            console.log(`[MapView Marker Detail TEST] WAQI Data. Name: ${point.originalData.name || point.originalData.city}, Value: ${point.value}, OriginalColor: ${originalColor}, Using TEST COLOR in options: ${colorForMarker}`);
+          } else {
+            console.log(`[MapView Marker Detail] Name: ${point.originalData.name || point.originalData.city}, Value: ${point.value}, SelectedPollutant: ${selectedPollutant}, Calculated Color: ${colorForMarker}`);
+          }
           
-          // Add popup with data (using originalData for full details)
+          const circleMarker = L.circleMarker([point.computedLat, point.computedLng], markerOptions);
+          
+          if (markersLayerRef.current) {
+            circleMarker.addTo(markersLayerRef.current);            // If it's WAQI data, try to force SVG fill attribute after adding to map
+            // AND set the CSS variable for the new rule in index.css
+            const element = circleMarker.getElement() as HTMLElement | SVGElement;
+            if (element) {
+              // Set CSS variable on the element itself
+              if (dataSource === 'waqi') {
+                element.style.setProperty('--marker-color', '#FF00FF'); // Magenta for WAQI
+                console.log(`[MapView Marker CSS Var] Set --marker-color to #FF00FF for ${point.originalData.name || point.originalData.city}`);
+              } else {
+                element.style.setProperty('--marker-color', colorForMarker);
+                console.log(`[MapView Marker CSS Var] Set --marker-color to ${colorForMarker} for ${point.originalData.name || point.originalData.city}`);
+              }
+
+              // Also try to set the variable on parent elements and find/force SVG circle directly
+              const parentElement = element.parentElement;
+              if (parentElement) {
+                parentElement.style.setProperty('--marker-color', dataSource === 'waqi' ? '#FF00FF' : colorForMarker);
+              }
+
+              // Direct SVG manipulation as backup
+              const svgCircles = element.querySelectorAll('circle');
+              svgCircles.forEach((circle) => {
+                const fillColor = dataSource === 'waqi' ? '#FF00FF' : colorForMarker;
+                (circle as SVGCircleElement).style.fill = fillColor;
+                circle.setAttribute('fill', fillColor);
+                console.log(`[MapView Direct SVG] Set circle fill to ${fillColor} for ${point.originalData.name || point.originalData.city}`);
+              });
+
+              // Debug logging to see element structure
+              console.log(`[MapView Element Debug] Element tagName: ${element.tagName}, className: ${element.className}, HTML:`, element.outerHTML.substring(0, 200));
+            } else {
+              console.log(`[MapView Marker CSS Var/SVG] Could not get SVG element for ${point.originalData.name || point.originalData.city}`);
+            }
+          } else {
+            console.error("[MapView] markersLayerRef.current is null, cannot add marker or force SVG style.");
+          }
+
           circleMarker.bindPopup(createPopupContent(point.originalData));
 
           // Handle marker click for sidebar

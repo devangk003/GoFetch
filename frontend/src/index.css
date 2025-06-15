@@ -9,6 +9,7 @@ body,
   height: 100%;
   margin: 0;
   padding: 0;
+  background-color: hsl(var(--background)); /* Ensure body has a background */
 }
 
 /* Ensure #root or your main app container is also a flex container if it wraps Index.tsx */
@@ -21,89 +22,98 @@ body,
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 20% 95%; /* Light cool gray */
+    --foreground: 220 10% 20%; /* Dark cool gray */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Adjusted for a lighter, more distinct blue tint */
+    --card: 210 40% 95% / 0.7; /* Was: 220 20% 100% / 0.6 */
+    --card-foreground: 220 10% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Adjusted for a lighter, more distinct blue tint */
+    --popover: 210 40% 97% / 0.75; /* Adjusted to be similar to card but potentially slightly different alpha/lightness */
+    --popover-foreground: 220 10% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 200 80% 55%; /* Vibrant blue */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 15% 80%; /* Lighter cool gray */
+    --secondary-foreground: 220 10% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 15% 85%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 200 70% 65%; /* Lighter vibrant blue */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 55%; /* Soft red */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 15% 80% / 0.5; /* Semi-transparent border */
+    --input: 220 15% 90% / 0.5;
+    --ring: 200 80% 60%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem; /* Slightly larger radius for softer corners */
 
-    --sidebar-background: 0 0% 98%;
+    /* iOS 26 inspired glass effect variables */
+    --glass-blur: 16px;
+    --glass-saturation: 180%;
+    --glass-border-opacity: 0.2;
+    --glass-shadow-opacity: 0.1;
+    /* New variable for reflection */
+    --glass-reflection-opacity: 0.05; 
 
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 220 20% 98% / 0.7; /* Semi-transparent light gray for sidebar */
+    --sidebar-foreground: 220 10% 20%;
+    --sidebar-primary: 200 75% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 85% / 0.5;
+    --sidebar-accent-foreground: 220 10% 20%;
+    --sidebar-border: 220 15% 75% / 0.3;
+    --sidebar-ring: 200 75% 65%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 220 15% 10%; /* Dark cool gray */
+    --foreground: 220 10% 85%; /* Light cool gray */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    /* Adjusted for a lighter, more distinct blue tint */
+    --card: 210 35% 25% / 0.7; /* Was: 220 15% 15% / 0.6 */
+    --card-foreground: 220 10% 90%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    /* Adjusted for a lighter, more distinct blue tint */
+    --popover: 210 35% 28% / 0.75; /* Adjusted to be similar to card but potentially slightly different alpha/lightness */
+    --popover-foreground: 220 10% 90%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 200 70% 60%; /* Vibrant blue (slightly muted for dark) */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 10% 25%; /* Darker cool gray */
+    --secondary-foreground: 220 10% 80%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 10% 30%;
+    --muted-foreground: 220 10% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 200 60% 70%; /* Lighter vibrant blue (slightly muted for dark) */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 60% 50%; /* Soft red (slightly muted for dark) */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 220 10% 30% / 0.5;
+    --input: 220 10% 20% / 0.5;
+    --ring: 200 70% 65%;
+
+    /* Update for dark mode reflection if needed, or keep it subtle */
+    --glass-reflection-opacity: 0.08; 
+
+    --sidebar-background: 220 15% 12% / 0.7;
+    --sidebar-foreground: 220 10% 85%;
+    --sidebar-primary: 200 65% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 220 10% 28% / 0.5;
+    --sidebar-accent-foreground: 220 10% 85%;
+    --sidebar-border: 220 10% 25% / 0.3;
+    --sidebar-ring: 200 65% 70%;
   }
 }
 
@@ -113,23 +123,79 @@ body,
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   }
 }
 
-/* Custom Leaflet popup styling */
+@layer utilities {
+  .glass-effect {
+    @apply relative overflow-hidden rounded-[var(--radius)] border border-black/[var(--glass-border-opacity)] shadow-lg shadow-black/[var(--glass-shadow-opacity)];
+    background-color: hsl(var(--card) / 0.65); /* Adjusted alpha */
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .glass-effect::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -150%; /* Start off-screen */
+    width: 75%; /* Width of the reflection */
+    height: 100%;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      hsla(0, 0%, 100%, var(--glass-reflection-opacity)) 50%,
+      transparent 100%
+    );
+    transform: skewX(-25deg); /* Angle the reflection */
+    animation: moving-reflection 10s linear infinite;
+    z-index: 0; /* Ensure it's behind content but above background */
+  }
+
+  @keyframes moving-reflection {
+    0% {
+      left: -150%;
+    }
+    100% {
+      left: 150%; /* Move across the element */
+    }
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+/* Glassmorphism utility class */
+/*.glass-effect {
+  background: hsl(var(--card) / var(--glass-border-opacity)); /* Use card as base, adjust opacity 
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  border: 1px solid hsl(var(--border) / var(--glass-border-opacity));
+  box-shadow: 0 8px 32px 0 hsl(var(--primary) / var(--glass-shadow-opacity));
+}*/
+
+/* Apply glass effect to specific components */
 .leaflet-popup-content-wrapper {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border-radius: 12px !important;
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  @apply glass-effect;
+  border-radius: var(--radius) !important;
 }
 
 .leaflet-popup-tip {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(229, 231, 235, 0.5);
+  @apply glass-effect;
+  border-top-color: hsl(var(--border) / var(--glass-border-opacity)) !important; /* Ensure tip matches */
+  border-bottom-color: hsl(var(--border) / var(--glass-border-opacity)) !important;
+  border-left-color: hsl(var(--border) / var(--glass-border-opacity)) !important;
+  border-right-color: hsl(var(--border) / var(--glass-border-opacity)) !important;
 }
 
 .leaflet-popup-content {
@@ -137,14 +203,14 @@ body,
 }
 
 .leaflet-popup-close-button {
-  color: #6B7280 !important;
+  color: hsl(var(--foreground) / 0.7) !important;
   font-size: 18px !important;
   font-weight: bold !important;
   padding: 4px 8px !important;
 }
 
 .leaflet-popup-close-button:hover {
-  color: #374151 !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 /* Custom marker animations */
@@ -152,19 +218,47 @@ body,
   animation: pulse 2s infinite;
 }
 
+/* Aggressive marker color override - target all possible selectors */
+.leaflet-marker-icon svg circle,
+.leaflet-interactive svg circle,
+svg circle[fill],
+circle {
+  fill: var(--marker-color, #008000) !important;
+}
+
+/* More specific targeting for Leaflet circle markers */
+.leaflet-clickable circle,
+.leaflet-zoom-animated circle {
+  fill: var(--marker-color, #008000) !important;
+}
+
 @keyframes pulse {
   0% {
     transform: scale(1);
+    opacity: 0.9;
   }
   50% {
-    transform: scale(1.05);
+    transform: scale(1.08);
+    opacity: 1;
   }
   100% {
     transform: scale(1);
+    opacity: 0.9;
   }
 }
 
-/* Smooth transitions for theme changes */
+/* Smooth transitions for theme changes and layout */
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+              border-color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+              color 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+              box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
+/* Example of applying glass to shadcn/ui Card (if you want all cards to be glass) */
+/* You might want to create a new Card variant instead for more control */
+/*
+.bg-card {
+  @apply glass-effect;
+}
+*/

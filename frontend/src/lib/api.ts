@@ -408,3 +408,31 @@ export async function fetchAiSearchSuggestions(): Promise<AiSuggestion[]> {
     return aiSuggestCache.slice(0, 5); // fallback to any cached
   }
 }
+
+/**
+ * Fetch WAQI stations within given map bounds
+ * swLat, swLng, neLat, neLng represent southwest and northeast coordinates
+ */
+export async function fetchWaqiStationsByBounds(
+  swLat: number,
+  swLng: number,
+  neLat: number,
+  neLng: number,
+  networks: string = 'all'
+): Promise<any[]> {
+  try {
+    const res = await fetch(
+      `${API_BASE_URL}/waqi/bounds?swLat=${swLat}&swLng=${swLng}&neLat=${neLat}&neLng=${neLng}&networks=${networks}`
+    );
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error('WAQI bounds fetch error:', errText);
+      throw new Error(`Failed to fetch WAQI stations: ${res.status}`);
+    }
+    const json = await res.json();
+    return json.data || [];
+  } catch (error) {
+    console.error('Error in fetchWaqiStationsByBounds:', error);
+    throw error;
+  }
+}
